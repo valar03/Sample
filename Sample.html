@@ -1,403 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Customer Management</title>
-  <style>
-    :root {
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --secondary: #6b7280;
-      --light-gray: #f3f4f6;
-      --border: #e5e7eb;
-      --text: #1f2937;
-      --error: #ef4444;
-      --success: #10b981;
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    
-    body {
-      background-color: #f9fafb;
-      color: var(--text);
-      line-height: 1.5;
-      padding: 2rem;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-      padding: 2rem;
-      margin-bottom: 2rem;
-    }
-    
-    h2 {
-      color: var(--text);
-      font-size: 1.5rem;
-      margin-bottom: 1.5rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    
-    h2 svg {
-      margin-right: 0.5rem;
-    }
-    
-    h3 {
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-    }
-    
-    h3 svg {
-      margin-right: 0.5rem;
-    }
-    
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .form-group {
-      margin-bottom: 0.5rem;
-    }
-    
-    label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-    
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 1rem;
-      transition: all 0.2s;
-    }
-    
-    input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-    }
-    
-    input:disabled {
-      background-color: var(--light-gray);
-      cursor: not-allowed;
-    }
-    
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-    
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-    }
-    
-    .btn svg {
-      margin-right: 0.5rem;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--primary-hover);
-    }
-    
-    .btn-secondary {
-      background-color: white;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    
-    .btn-secondary:hover {
-      background-color: var(--light-gray);
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    th {
-      background-color: var(--light-gray);
-      font-weight: 500;
-    }
-    
-    tr:hover {
-      background-color: var(--light-gray);
-    }
-    
-    .badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    
-    .badge-success {
-      background-color: rgba(16, 185, 129, 0.1);
-      color: var(--success);
-    }
-    
-    .badge-secondary {
-      background-color: rgba(107, 114, 128, 0.1);
-      color: var(--secondary);
-    }
-    
-    .actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-    
-    .btn-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 6px;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-icon:hover {
-      background-color: var(--light-gray);
-    }
-    
-    .status {
-      margin-top: 1rem;
-      padding: 1rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      display: none;
-    }
-    
-    .status-success {
-      background-color: rgba(16, 185, 129, 0.1);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
-    
-    @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .button-group {
-        flex-direction: column;
-      }
-      
-      table {
-        display: block;
-        overflow-x: auto;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="card">
-      <h2>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        Update Customer
-      </h2>
-      
-      <form>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="id">Customer ID</label>
-            <input type="text" id="id" [value]="customer.id" disabled />
-          </div>
-          
-          <div class="form-group">
-            <label for="firstName">First Name</label>
-            <input type="text" id="firstName" [value]="customer.firstName" (input)="handleInputChange($event, 'firstName')" />
-          </div>
-          
-          <div class="form-group">
-            <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" [value]="customer.lastName" (input)="handleInputChange($event, 'lastName')" />
-          </div>
-          
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" [value]="customer.email" disabled />
-          </div>
-          
-          <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" [value]="customer.phone" (input)="handleInputChange($event, 'phone')" />
-          </div>
-          
-          <div class="form-group">
-            <label for="city">City</label>
-            <input type="text" id="city" [value]="customer.city" (input)="handleInputChange($event, 'city')" />
-          </div>
-          
-          <div class="form-group">
-            <label for="state">State</label>
-            <input type="text" id="state" [value]="customer.state" (input)="handleInputChange($event, 'state')" />
-          </div>
-          
-          <div class="form-group">
-            <label for="zip">ZIP Code</label>
-            <input type="text" id="zip" [value]="customer.zip" (input)="handleInputChange($event, 'zip')" />
-          </div>
-        </div>
-        
-        <div class="button-group">
-          <button type="submit" class="btn btn-primary" (click)="$event.preventDefault(); updateCustomer()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-            Save Changes
-          </button>
-          
-          <button type="button" class="btn btn-secondary" (click)="resetForm()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2.5 2v6h6M21.5 22v-6h-6"></path>
-              <path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.2"></path>
-            </svg>
-            Reset
-          </button>
-        </div>
-        
-        <div id="updateSuccess" class="status status-success">
-          Customer information updated successfully!
-        </div>
-      </form>
-    </div>
-    
-    <div class="card">
-      <h3>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="8" y1="6" x2="21" y2="6"></line>
-          <line x1="8" y1="12" x2="21" y2="12"></line>
-          <line x1="8" y1="18" x2="21" y2="18"></line>
-          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-        </svg>
-        Customer List
-      </h3>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let customer of tableData">
-            <td>{{ customer.id }}</td>
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.email }}</td>
-            <td>
-              <span class="badge badge-success">Active</span>
-            </td>
-            <td class="actions">
-              <button class="btn-icon" title="Edit">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                <span class="visually-hidden">Edit</span>
-              </button>
-              <button class="btn-icon" title="View Details">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <span class="visually-hidden">View Details</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<div class="mat-card">
+  <h2>Manage Customer Profile</h2>
+
+  <!-- Update Customer Button -->
+  <div class="mb-4">
+    <button mat-flat-button color="primary" (click)="updateCustomer()">Update Customer</button>
   </div>
 
-  <script>
-    // Simple script to show the success message
-    function updateCustomer() {
-      const successMessage = document.getElementById('updateSuccess');
-      successMessage.style.display = 'block';
-      
-      setTimeout(() => {
-        successMessage.style.display = 'none';
-      }, 3000);
-      
-      return false;
-    }
-    
-    function resetForm() {
-      // In a real implementation, this would reset the form to original values
-      document.getElementById('updateSuccess').style.display = 'none';
-    }
-  </script>
-</body>
-              </html>
+  <!-- Customer Information Section -->
+  <h3>Customer Information</h3>
+  <form [formGroup]="customerForm" class="customer-info-form">
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Customer Type</mat-label>
+        <input matInput formControlName="customerType">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Customer ECN</mat-label>
+        <input matInput formControlName="customerEcn">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>First Name</mat-label>
+        <input matInput formControlName="customerFirstName">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="emailAddress">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Last Name</mat-label>
+        <input matInput formControlName="customerLastName">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Phone</mat-label>
+        <input matInput formControlName="phoneNumber">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Customer ID</mat-label>
+        <input matInput formControlName="customerId" disabled>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fax</mat-label>
+        <input matInput formControlName="faxNumber">
+      </mat-form-field>
+    </div>
+
+  </form>
+
+  <!-- Loan Information Section -->
+  <h3>Loan Information</h3>
+  <table mat-table [dataSource]="loanDataSource" class="mat-elevation-z8">
+
+    <!-- Create Process Column with Radio Button -->
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef> Select </th>
+      <td mat-cell *matCellDef="let element">
+        <mat-radio-button [(ngModel)]="selectedLoan" [value]="element"></mat-radio-button>
+      </td>
+    </ng-container>
+
+    <!-- Build Icon Column -->
+    <ng-container matColumnDef="build">
+      <th mat-header-cell *matHeaderCellDef> Build </th>
+      <td mat-cell *matCellDef="let element">
+        <mat-icon>build</mat-icon>
+      </td>
+    </ng-container>
+
+    <!-- Loan Number -->
+    <ng-container matColumnDef="loanNumber">
+      <th mat-header-cell *matHeaderCellDef> Loan Number </th>
+      <td mat-cell *matCellDef="let element"> {{element.loanNumber}} </td>
+    </ng-container>
+
+    <!-- SIR -->
+    <ng-container matColumnDef="sir">
+      <th mat-header-cell *matHeaderCellDef> SIR </th>
+      <td mat-cell *matCellDef="let element"> {{element.sir}} </td>
+    </ng-container>
+
+    <!-- Street Address -->
+    <ng-container matColumnDef="streetAddress">
+      <th mat-header-cell *matHeaderCellDef> Street Address </th>
+      <td mat-cell *matCellDef="let element"> {{element.streetAddress}} </td>
+    </ng-container>
+
+    <!-- Additional Loan Columns as needed -->
+    <!-- Example -->
+    <ng-container matColumnDef="loanStatus">
+      <th mat-header-cell *matHeaderCellDef> Status </th>
+      <td mat-cell *matCellDef="let element"> {{element.status}} </td>
+    </ng-container>
+
+    <!-- Table Headers and Rows -->
+    <tr mat-header-row *matHeaderRowDef="loanDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: loanDisplayedColumns;"></tr>
+
+  </table>
+</div>
