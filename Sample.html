@@ -138,3 +138,30 @@
   <tr mat-header-row *matHeaderRowDef="displayedLoanColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedLoanColumns;"></tr>
 </table>
+
+
+
+  ************
+
+  loanDataSource = new MatTableDataSource<CustomerLoanAddressDto>();
+displayedLoanColumns: string[] = [
+  'createProcess', 'build', 'loanNumber', 'sor', 'streetAddress', 'city', 'state', 'zip',
+  'borrower', 'coBorrower', 'other'
+];
+
+loadLoanInformation(customerId: string) {
+  this.customerProfileService.getCustomerLoanInformationDetails(customerId).subscribe({
+    next: (response: CustomerLoanAddressDto[]) => {
+      this.loanDataSource.data = response;
+    },
+    error: (error) => {
+      this.loggerService.log("error", "ManageCustomerProfileComponent::loadLoanInformation", sessionStorage.getItem('loggedInUserName'), 'Failure Page', { key: 'error', value: error });
+    }
+  });
+}
+
+// Build process action
+onBuildProcess(loan: CustomerLoanAddressDto) {
+  console.log("Build process for: ", loan.loanNumber);
+  // Implement your process logic here
+}
