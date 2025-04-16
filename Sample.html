@@ -61,53 +61,80 @@
   </form>
 
   <!-- Loan Information Section -->
-  <h3>Loan Information</h3>
-  <table mat-table [dataSource]="loanDataSource" class="mat-elevation-z8">
+<h3>Loan Information</h3>
 
-    <!-- Create Process Column with Radio Button -->
-    <ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef> Select </th>
-      <td mat-cell *matCellDef="let element">
-        <mat-radio-button [(ngModel)]="selectedLoan" [value]="element"></mat-radio-button>
-      </td>
-    </ng-container>
+<table mat-table [dataSource]="loanDataSource" class="mat-elevation-z8">
 
-    <!-- Build Icon Column -->
-    <ng-container matColumnDef="build">
-      <th mat-header-cell *matHeaderCellDef> Build </th>
-      <td mat-cell *matCellDef="let element">
-        <mat-icon>build</mat-icon>
-      </td>
-    </ng-container>
+  <!-- Create Process Column -->
+  <ng-container matColumnDef="createProcess">
+    <th mat-header-cell *matHeaderCellDef>Create Process</th>
+    <td mat-cell *matCellDef="let loan">
+      <mat-radio-button [(ngModel)]="loan.selected"></mat-radio-button>
+    </td>
+  </ng-container>
 
-    <!-- Loan Number -->
-    <ng-container matColumnDef="loanNumber">
-      <th mat-header-cell *matHeaderCellDef> Loan Number </th>
-      <td mat-cell *matCellDef="let element"> {{element.loanNumber}} </td>
-    </ng-container>
+  <!-- Build Icon Column -->
+  <ng-container matColumnDef="build">
+    <th mat-header-cell *matHeaderCellDef>Build</th>
+    <td mat-cell *matCellDef="let loan">
+      <mat-icon class="cursor-pointer" (click)="onBuildProcess(loan)">build</mat-icon>
+    </td>
+  </ng-container>
 
-    <!-- SIR -->
-    <ng-container matColumnDef="sir">
-      <th mat-header-cell *matHeaderCellDef> SIR </th>
-      <td mat-cell *matCellDef="let element"> {{element.sir}} </td>
-    </ng-container>
+  <!-- Loan Number -->
+  <ng-container matColumnDef="loanNumber">
+    <th mat-header-cell *matHeaderCellDef>Loan Number</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.loanNumber }}</td>
+  </ng-container>
 
-    <!-- Street Address -->
-    <ng-container matColumnDef="streetAddress">
-      <th mat-header-cell *matHeaderCellDef> Street Address </th>
-      <td mat-cell *matCellDef="let element"> {{element.streetAddress}} </td>
-    </ng-container>
+  <!-- SOR -->
+  <ng-container matColumnDef="sor">
+    <th mat-header-cell *matHeaderCellDef>SOR</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.sor }}</td>
+  </ng-container>
 
-    <!-- Additional Loan Columns as needed -->
-    <!-- Example -->
-    <ng-container matColumnDef="loanStatus">
-      <th mat-header-cell *matHeaderCellDef> Status </th>
-      <td mat-cell *matCellDef="let element"> {{element.status}} </td>
-    </ng-container>
+  <!-- Street Address -->
+  <ng-container matColumnDef="streetAddress">
+    <th mat-header-cell *matHeaderCellDef>Street Address</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.streetAddress }}</td>
+  </ng-container>
 
-    <!-- Table Headers and Rows -->
-    <tr mat-header-row *matHeaderRowDef="loanDisplayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: loanDisplayedColumns;"></tr>
+  <!-- City -->
+  <ng-container matColumnDef="city">
+    <th mat-header-cell *matHeaderCellDef>City</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.city }}</td>
+  </ng-container>
 
-  </table>
-</div>
+  <!-- State -->
+  <ng-container matColumnDef="state">
+    <th mat-header-cell *matHeaderCellDef>State</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.state }}</td>
+  </ng-container>
+
+  <!-- Zip -->
+  <ng-container matColumnDef="zip">
+    <th mat-header-cell *matHeaderCellDef>Zip</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.zip }}</td>
+  </ng-container>
+
+  <!-- Borrower Name -->
+  <ng-container matColumnDef="borrower">
+    <th mat-header-cell *matHeaderCellDef>Borrower Name</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.borrower }}</td>
+  </ng-container>
+
+  <!-- Co-Borrower -->
+  <ng-container matColumnDef="coBorrower">
+    <th mat-header-cell *matHeaderCellDef>Co-Borrower</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.coBorrower }}</td>
+  </ng-container>
+
+  <!-- Other -->
+  <ng-container matColumnDef="other">
+    <th mat-header-cell *matHeaderCellDef>Other</th>
+    <td mat-cell *matCellDef="let loan">{{ loan.other }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedLoanColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedLoanColumns;"></tr>
+</table>
