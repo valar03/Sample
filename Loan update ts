@@ -1,0 +1,75 @@
+import { Component, Inject } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+
+@Component({
+  selector: 'app-update-loan-details-modal',
+  templateUrl: './update-loan-details-modal.component.html'
+})
+export class UpdateLoanDetailsModalComponent {
+  loanForm: FormGroup;
+  streetIds = [101, 102, 103];
+  streetTypes = ['Avenue', 'Boulevard', 'Street', 'Road'];
+  states = ['NY', 'CA', 'TX', 'FL'];
+
+  coBorrowers: any[] = [];
+  otherCustomers: any[] = [];
+
+  constructor(
+    private fb: FormBuilder,
+    private dialogRef: MatDialogRef<UpdateLoanDetailsModalComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.loanForm = this.fb.group({
+      sor: [''],
+      clientId: [''],
+      loanNumber: [''],
+      streetNo: [''],
+      streetId: [''],
+      streetName: [''],
+      streetType: [''],
+      apt: [''],
+      city: [''],
+      state: [''],
+      zip: ['']
+    });
+  }
+
+  addCoBorrower() {
+    this.coBorrowers.push({});
+  }
+
+  removeCoBorrower(index: number) {
+    this.coBorrowers.splice(index, 1);
+  }
+
+  updateCoBorrower(index: number) {
+    console.log('CoBorrower updated:', this.coBorrowers[index]);
+  }
+
+  addOtherCustomer() {
+    this.otherCustomers.push({});
+  }
+
+  removeOtherCustomer(index: number) {
+    this.otherCustomers.splice(index, 1);
+  }
+
+  updateOtherCustomer(index: number) {
+    console.log('Other Customer updated:', this.otherCustomers[index]);
+  }
+
+  submit() {
+    console.log('Form Submitted:', this.loanForm.value);
+    this.dialogRef.close(this.loanForm.value);
+  }
+
+  cancel() {
+    this.dialogRef.close();
+  }
+
+  close() {
+    // Return to customer logic
+    this.dialogRef.close('return');
+  }
+}
