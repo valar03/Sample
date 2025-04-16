@@ -1,0 +1,107 @@
+<h2 mat-dialog-title>Update Loan Details</h2>
+
+<mat-dialog-content [formGroup]="loanForm">
+
+  <!-- Loan Information -->
+  <h3>Loan Information</h3>
+  <div class="form-row">
+    <mat-form-field>
+      <mat-label>SOR</mat-label>
+      <input matInput formControlName="sor">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Client ID</mat-label>
+      <input matInput formControlName="clientId">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Loan Number</mat-label>
+      <input matInput formControlName="loanNumber">
+    </mat-form-field>
+  </div>
+
+  <!-- Address Information -->
+  <h3>Address Information</h3>
+  <div class="form-row">
+    <mat-form-field>
+      <mat-label>Street Number</mat-label>
+      <input matInput formControlName="streetNo">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Street ID</mat-label>
+      <mat-select formControlName="streetId">
+        <mat-option *ngFor="let id of streetIds" [value]="id">{{id}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Street Name</mat-label>
+      <input matInput formControlName="streetName">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Street Type</mat-label>
+      <mat-select formControlName="streetType">
+        <mat-option *ngFor="let type of streetTypes" [value]="type">{{type}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field>
+      <mat-label>Apt</mat-label>
+      <input matInput formControlName="apt">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>City</mat-label>
+      <input matInput formControlName="city">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>State</mat-label>
+      <mat-select formControlName="state">
+        <mat-option *ngFor="let state of states" [value]="state">{{state}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Zip</mat-label>
+      <input matInput formControlName="zip">
+    </mat-form-field>
+  </div>
+
+  <!-- Co-Borrower Section -->
+  <h3>Additional Customer Information</h3>
+
+  <h4>Co-Borrowers</h4>
+  <button mat-stroked-button color="primary" (click)="addCoBorrower()">Add Co-Borrower</button>
+  <div *ngFor="let co of coBorrowers; let i = index" class="co-borrower-section">
+    <h5>Co-Borrower {{i+1}}</h5>
+    <mat-form-field><mat-label>Customer Type</mat-label><input matInput [(ngModel)]="co.customerType"></mat-form-field>
+    <mat-form-field><mat-label>First Name</mat-label><input matInput [(ngModel)]="co.firstName"></mat-form-field>
+    <mat-form-field><mat-label>Last Name</mat-label><input matInput [(ngModel)]="co.lastName"></mat-form-field>
+    <mat-form-field><mat-label>Email</mat-label><input matInput [(ngModel)]="co.email"></mat-form-field>
+    <mat-form-field><mat-label>Phone</mat-label><input matInput [(ngModel)]="co.phone"></mat-form-field>
+    <mat-form-field><mat-label>Fax</mat-label><input matInput [(ngModel)]="co.fax"></mat-form-field>
+    <mat-form-field><mat-label>GEM Customer ID</mat-label><input matInput [(ngModel)]="co.customerId"></mat-form-field>
+    <button mat-button color="accent" (click)="updateCoBorrower(i)">Update</button>
+    <button mat-button color="warn" (click)="removeCoBorrower(i)">Remove</button>
+  </div>
+
+  <h4>Other Customers</h4>
+  <button mat-stroked-button color="primary" (click)="addOtherCustomer()">Add Other</button>
+  <div *ngFor="let other of otherCustomers; let j = index" class="other-customer-section">
+    <h5>Other Customer {{j+1}}</h5>
+    <mat-form-field><mat-label>Customer Type</mat-label><input matInput [(ngModel)]="other.customerType"></mat-form-field>
+    <mat-form-field><mat-label>First Name</mat-label><input matInput [(ngModel)]="other.firstName"></mat-form-field>
+    <mat-form-field><mat-label>Last Name</mat-label><input matInput [(ngModel)]="other.lastName"></mat-form-field>
+    <mat-form-field><mat-label>Email</mat-label><input matInput [(ngModel)]="other.email"></mat-form-field>
+    <mat-form-field><mat-label>Phone</mat-label><input matInput [(ngModel)]="other.phone"></mat-form-field>
+    <mat-form-field><mat-label>Fax</mat-label><input matInput [(ngModel)]="other.fax"></mat-form-field>
+    <mat-form-field><mat-label>GEM Customer ID</mat-label><input matInput [(ngModel)]="other.customerId"></mat-form-field>
+    <button mat-button color="accent" (click)="updateOtherCustomer(j)">Update</button>
+    <button mat-button color="warn" (click)="removeOtherCustomer(j)">Remove</button>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancel()">Cancel</button>
+  <button mat-stroked-button color="primary" (click)="submit()">Submit</button>
+  <button mat-flat-button color="accent" (click)="close()">Return to Customer</button>
+</mat-dialog-actions>
