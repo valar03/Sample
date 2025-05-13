@@ -33,3 +33,40 @@ X = vectorizer.fit_transform(corpus)
 
 similarity = cosine_similarity(X[0], X[1])
 print(f"Similarity: {similarity[0][0]:.4f}")
+
+
+
+######
+
+
+synonym_dict = {
+    "help": ["assist", "aid"],
+    "assistance": ["help", "support"],
+    "need": ["require", "want"]
+}
+
+def expand_sentence(sentence):
+    words = sentence.lower().split()
+    expanded = []
+    for word in words:
+        expanded.append(word)
+        if word in synonym_dict:
+            expanded.extend(synonym_dict[word])
+    return " ".join(expanded)
+
+sentences = [
+    "How can I help you?",
+    "What assistance do you need?"
+]
+
+expanded_sentences = [expand_sentence(s) for s in sentences]
+
+# Now apply TF-IDF
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(expanded_sentences)
+
+sim = cosine_similarity(X[0], X[1])
+print(f"Similarity: {sim[0][0]:.4f}")
