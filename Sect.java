@@ -58,3 +58,53 @@ public List<LdapUser> getUsers(final AdDomain domain, final Filter ldapFilter, b
 
     return users;
 }
+
+********"''"""""****
+
+public List<LdapUser> getUsers(final AdDomain domain, final Filter ldapFilter, boolean includeMgrEmpNum) {
+    LdapSearch ldapSearch = getLdapSearch(domain);
+
+    // Step 1: Find all groups matching the filter (e.g., dtca_sptfm_*)
+    List<String> memberDns = new ArrayList<>();
+
+    this.search(domain, ldapFilter, new String[]{"member"}, (Attributes attrs) -> {
+        Attribute members = attrs.get("member");
+        if (members != null) {
+            NamingEnumeration<?> all = members.getAll();
+            while (all.hasMore()) {
+                memberDns.add((String) all.next());
+            }
+        }
+        return null;
+    });
+
+    // Step 2: Remove duplicates
+    Set<String> uniqueDns = new HashSet<>(memberDns);
+
+    // Step 3: Build OR filter for all user DNs
+    Filter effectiveFilter;
+    if (!uniqueDns.isEmpty()) {
+        OrFilter orFilter = new OrFilter();
+        for (String dn : uniqueDns) {
+            orFilter.or(new EqualsFilter("distinguishedName", dn));
+        }
+        effectiveFilter = orFilter;
+    } else {
+        // No groups found or no members, fallback to original filter
+        effectiveFilter = ldapFilter;
+    }
+
+    // Step 4: Search for users using the new filter
+    LdapQuery query = ldapSearch.getBaseQuery(domain).filter(effectiveFilter);
+    List<LdapUser> users = ldapSearch.search(query);
+
+    // Step 5: Include manager details if requested
+    if (includeMgrEmpNum) {
+        users = users.stream().map(u -> {
+            u.setManager(getManager(u, ldapSearch));
+            return u;
+        }).collect(Collectors.toList());
+    }
+
+    return users;
+}
