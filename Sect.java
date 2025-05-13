@@ -108,3 +108,29 @@ public List<LdapUser> getUsers(final AdDomain domain, final Filter ldapFilter, b
 
     return users;
 }
+
+
+******REPLACING CODE HERE****
+public Map<String, String> getUserIdsAndNamesFromLdap() {
+    // Define the LDAP group name wildcard filter
+    Filter groupFilter = new AndFilter()
+        .and(new EqualsFilter("objectClass", "group"))
+        .and(new LikeFilter("cn", "dtca_sptfm_*"));  // Change this pattern if needed
+
+    // Call your updated getUsers() method
+    List<LdapUser> users = getUsers(adDomain, groupFilter, false);
+
+    // Convert to Map<username, "LastName,FirstName">
+    Map<String, String> userMap = users.stream()
+        .filter(user -> user.getUserName() != null && user.getFirstName() != null && user.getLastName() != null)
+        .collect(Collectors.toMap(
+            user -> user.getUserName().toLowerCase(),
+            user -> user.getLastName() + "," + user.getFirstName(),
+            (first, second) -> first // in case of duplicate usernames
+        ));
+
+    // Print the result for testing
+    userMap.forEach((k, v) -> System.out.println(k + " -> " + v));
+
+    return userMap;
+}
