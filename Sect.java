@@ -14,41 +14,41 @@ users.forEach(user -> {
 
 
 †********
-    public List<LdapUser> getUsersByGroup(final AdDomain domain, final String groupName, boolean includeMgrEmpNum) {
+public List<LdapUser> getUsers(final AdDomain domain, final Filter ldapFilter, boolean includeMgrEmpNum) {
     LdapSearch ldapSearch = getLdapSearch(domain);
 
-    // Step 1: Search for the group by CN
-    Filter groupFilter = new EqualsFilter("cn", groupName);
-    LdapQuery groupQuery = ldapSearch.getBaseQuery(domain).filter(groupFilter);
-
+    // Step 1: Execute original query to check if it's a group search
     List<String> memberDns = new ArrayList<>();
 
-    ldapSearch.getLdapTemplate().search(groupQuery, (Attributes attrs) -> {
+    this.search(domain, ldapFilter, new String[]{"member"}, (Attributes attrs) -> {
         Attribute members = attrs.get("member");
         if (members != null) {
-            NamingEnumeration<?> allMembers = members.getAll();
-            while (allMembers.hasMore()) {
-                memberDns.add((String) allMembers.next());
+            NamingEnumeration<?> all = members.getAll();
+            while (all.hasMore()) {
+                memberDns.add((String) all.next());
             }
         }
-        return null; // only extracting members
+        return null;
     });
 
-    if (memberDns.isEmpty()) {
-        return Collections.emptyList();
+    Filter effectiveFilter;
+    if (!memberDns.isEmpty()) {
+        // Step 2: Build OR filter from member DNs
+        OrFilter orFilter = new OrFilter();
+        for (String dn : memberDns) {
+            orFilter.or(new EqualsFilter("distinguishedName", dn));
+        }
+        effectiveFilter = orFilter;
+    } else {
+        // Not a group search or no members, use original filter
+        effectiveFilter = ldapFilter;
     }
 
-    // Step 2: Build OR filter for all member DNs
-    OrFilter orFilter = new OrFilter();
-    for (String dn : memberDns) {
-        orFilter.or(new EqualsFilter("distinguishedName", dn));
-    }
+    // Step 3: Build and run final query
+    LdapQuery query = ldapSearch.getBaseQuery(domain).filter(effectiveFilter);
+    List<LdapUser> users = ldapSearch.search(query);
 
-    // Step 3: Search for all users matching these DNs
-    LdapQuery userQuery = ldapSearch.getBaseQuery(domain).filter(orFilter);
-    List<LdapUser> users = ldapSearch.search(userQuery);
-
-    // Step 4: Set manager info if needed
+    // Step 4: Add manager info if requested
     if (includeMgrEmpNum) {
         users = users.stream().map(u -> {
             u.setManager(getManager(u, ldapSearch));
