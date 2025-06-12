@@ -1,46 +1,51 @@
-@Override
-public List<LDAPUserInfoDto> getUserByGroup(String group) {
-    List<LDAPUserInfoDto> adFinalList = new LinkedList<>();
+@Bean
+public RestTemplateCustomizer mtlsClientRestTemplateCustomizer() throws Exception {
+    System.out.println("▶ Initializing dynamic SSL trust setup...");
 
-    try {
-        if (group.contains("*")) {
-            // Wildcard handling
-            String baseFilter = group.replace("*", ""); // e.g., DTCA_APD_SPFTM_
+    // 🔐 Load default system truststore (no path needed!)
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    tmf.init((KeyStore) null);
+    System.out.println("✅ Loaded default system trust store");
 
-            // 1. Search for all group DNs with matching CNs
-            List<String> groupDns = ldapTemplate.search(
-                "OU=Groups,OU=DTC,OU=ENT,DC=ent,DC=wfb,DC=bank,DC=qa",
-                "(cn=" + baseFilter + "*)",
-                new SearchControls(),
-                (attributes, name) -> "CN=" + attributes.get("cn").get() + "," + ldapSearchFilterBase
-            );
-
-            // 2. For each group, get users
-            for (String groupDn : groupDns) {
-                String filter = "(memberOf=" + groupDn + ")";
-                List<LDAPUserInfoDto> groupUsers = getAllADUsers(filter, defaultPageSize);
-                if (groupUsers != null) {
-                    adFinalList.addAll(groupUsers.stream().filter(Objects::nonNull).collect(Collectors.toList()));
-                }
-            }
-        } else {
-            // Exact match handling (original logic)
-            SearchControls searchControls = new SearchControls();
-            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-
-            OrFilter searchFilter = new OrFilter();
-            searchFilter.append(new EqualsFilter("memberOf", "CN=" + group + "," + ldapSearchFilterBase));
-            System.out.println(searchFilter);
-
-            List<LDAPUserInfoDto> adUserListGrp = getAllADUsers(searchFilter.encode(), defaultPageSize);
-            if (adUserListGrp != null) {
-                adFinalList = adUserListGrp.stream().filter(Objects::nonNull).collect(Collectors.toList());
-            }
+    // ✅ Extract default certificates
+    X509TrustManager defaultTm = null;
+    for (TrustManager tm : tmf.getTrustManagers()) {
+        if (tm instanceof X509TrustManager) {
+            defaultTm = (X509TrustManager) tm;
+            break;
         }
-    } catch (Exception e) {
-        LOGGER.error("Error occurred in getUserByGroup method", e);
-        e.printStackTrace();
     }
 
-    return adFinalList;
+    if (defaultTm == null) {
+        throw new IllegalStateException("❌ No default X509TrustManager found");
+    }
+
+    // 🌐 Fetch LDAP certificate dynamically
+    String ldapHost = "your.ldap.server.com"; // TODO: replace
+    int ldapPort = 636;
+    X509Certificate ldapCert = fetchLdapCertificate(ldapHost, ldapPort);
+    System.out.println("📄 LDAP cert: " + ldapCert.getSubjectX500Principal());
+
+    // 👷 Build new in-memory trust store that includes default certs + LDAP
+    KeyStore newTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    newTrustStore.load(null); // Initialize empty
+
+    int i = 1;
+    for (X509Certificate cert : defaultTm.getAcceptedIssuers()) {
+        newTrustStore.setCertificateEntry("default-" + i++, cert);
+    }
+    newTrustStore.setCertificateEntry("ldap-cert", ldapCert);
+
+    // Reinitialize TrustManager with combined truststore
+    TrustManagerFactory combinedTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    combinedTmf.init(newTrustStore);
+    System.out.println("🔐 New TrustManager created with LDAP cert + defaults");
+
+    SSLContext sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(null, combinedTmf.getTrustManagers(), new SecureRandom());
+
+    HttpClient client = HttpClients.custom().setSSLContext(sslContext).build();
+    System.out.println("🚀 SSLContext ready and RestTemplate customized");
+
+    return restTemplate -> restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(client));
 }
