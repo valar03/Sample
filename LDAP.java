@@ -1,5 +1,3 @@
-package com.example.config;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.ldap.core.support.AbstractContextSource;
+import org.springframework.ldap.core.support.LdapContextSource;
 
 import javax.net.ssl.SSLContext;
 import java.security.SecureRandom;
@@ -24,14 +23,19 @@ public class SpftmRestConfiguration {
 
     @Bean
     public RestTemplateCustomizer mtlsClientRestTemplateCustomizer(
-            @Qualifier("adContextSource") AbstractContextSource adContextSource) throws Exception {
+            @Qualifier("adContextSource") Object adContextSourceObj  // generic to allow type casting
+    ) throws Exception {
 
-        // 🔄 Trigger LDAP context initialization to ensure LDAP SSL handshake happens early
-        adContextSource.getReadOnlyContext();
+        // ✅ Cast to AbstractContextSource only if it's compatible
+        if (adContextSourceObj instanceof AbstractContextSource abstractContextSource) {
+            // Trigger LDAP handshake early to make sure Venafi loads cert
+            abstractContextSource.getReadOnlyContext();
+            System.out.println("✅ AD context source initialized successfully");
+        } else {
+            System.out.println("⚠️ Could not cast adContextSource to AbstractContextSource");
+        }
 
-        System.out.println("✅ Triggered AD context source initialization (forces LDAP trust setup)");
-
-        // 🛡️ Use default JVM SSL context (already updated by Venafi)
+        // 🔐 Use default SSL context (with Venafi-managed truststore)
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, null, new SecureRandom());
 
