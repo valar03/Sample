@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.ldap.core.support.AbstractContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.core.support.PooledContextSource;
+import org.springframework.ldap.core.support.DefaultDirContextValidator;
 
 import javax.net.ssl.SSLContext;
 import java.security.SecureRandom;
@@ -25,18 +26,23 @@ public class SpftmRestConfiguration {
 
     @Bean
     public RestTemplateCustomizer mtlsClientRestTemplateCustomizer(
-            @Qualifier("adContextSource") ContextSource adContextSourceBean // ✅ FIX: correct type
+            @Qualifier("adContextSource") org.springframework.ldap.core.support.ContextSource adContextSourceBean
     ) throws Exception {
 
-        // ✅ Try initializing the LDAP context to ensure certs are loaded
-        if (adContextSourceBean instanceof AbstractContextSource ctx) {
-            ctx.getReadOnlyContext(); // Triggers trust handshake (Venafi etc.)
-            System.out.println("✅ LDAP context initialized via: " + ctx.getUrls()[0]);
+        // ✅ Trigger AD context early to force Venafi + truststore loading
+        if (adContextSourceBean instanceof AbstractContextSource) {
+            AbstractContextSource ctx = (AbstractContextSource) adContextSourceBean;
+            try {
+                ctx.getReadOnlyContext(); // Triggers cert loading
+                System.out.println("✅ LDAP trust established with: " + ctx.getUrls()[0]);
+            } catch (Exception e) {
+                System.err.println("❌ Failed to init LDAP trust: " + e.getMessage());
+            }
         } else {
-            System.out.println("⚠️ LDAP bean is not an AbstractContextSource, skipping init");
+            System.out.println("⚠️ Provided context is not an AbstractContextSource: " + adContextSourceBean.getClass().getName());
         }
 
-        // 🔐 Use default SSL context (with Venafi/OS-managed truststore)
+        // 🔐 Use default truststore (e.g. Venafi-managed)
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, null, new SecureRandom());
 
