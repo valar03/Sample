@@ -1,51 +1,45 @@
-@Bean
-public RestTemplateCustomizer mtlsClientRestTemplateCustomizer() throws Exception {
-    System.out.println("▶ Initializing dynamic SSL trust setup...");
+package com.example.config;
 
-    // 🔐 Load default system truststore (no path needed!)
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    tmf.init((KeyStore) null);
-    System.out.println("✅ Loaded default system trust store");
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.ldap.core.support.AbstractContextSource;
 
-    // ✅ Extract default certificates
-    X509TrustManager defaultTm = null;
-    for (TrustManager tm : tmf.getTrustManagers()) {
-        if (tm instanceof X509TrustManager) {
-            defaultTm = (X509TrustManager) tm;
-            break;
-        }
+import javax.net.ssl.SSLContext;
+import java.security.SecureRandom;
+
+@Configuration
+public class SpftmRestConfiguration {
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
     }
 
-    if (defaultTm == null) {
-        throw new IllegalStateException("❌ No default X509TrustManager found");
+    @Bean
+    public RestTemplateCustomizer mtlsClientRestTemplateCustomizer(
+            @Qualifier("adContextSource") AbstractContextSource adContextSource) throws Exception {
+
+        // 🔄 Trigger LDAP context initialization to ensure LDAP SSL handshake happens early
+        adContextSource.getReadOnlyContext();
+
+        System.out.println("✅ Triggered AD context source initialization (forces LDAP trust setup)");
+
+        // 🛡️ Use default JVM SSL context (already updated by Venafi)
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, new SecureRandom());
+
+        HttpClient client = HttpClients.custom()
+                .setSSLContext(sslContext)
+                .build();
+
+        return restTemplate -> restTemplate.setRequestFactory(
+                new HttpComponentsClientHttpRequestFactory(client));
     }
-
-    // 🌐 Fetch LDAP certificate dynamically
-    String ldapHost = "your.ldap.server.com"; // TODO: replace
-    int ldapPort = 636;
-    X509Certificate ldapCert = fetchLdapCertificate(ldapHost, ldapPort);
-    System.out.println("📄 LDAP cert: " + ldapCert.getSubjectX500Principal());
-
-    // 👷 Build new in-memory trust store that includes default certs + LDAP
-    KeyStore newTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    newTrustStore.load(null); // Initialize empty
-
-    int i = 1;
-    for (X509Certificate cert : defaultTm.getAcceptedIssuers()) {
-        newTrustStore.setCertificateEntry("default-" + i++, cert);
-    }
-    newTrustStore.setCertificateEntry("ldap-cert", ldapCert);
-
-    // Reinitialize TrustManager with combined truststore
-    TrustManagerFactory combinedTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    combinedTmf.init(newTrustStore);
-    System.out.println("🔐 New TrustManager created with LDAP cert + defaults");
-
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(null, combinedTmf.getTrustManagers(), new SecureRandom());
-
-    HttpClient client = HttpClients.custom().setSSLContext(sslContext).build();
-    System.out.println("🚀 SSLContext ready and RestTemplate customized");
-
-    return restTemplate -> restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(client));
 }
